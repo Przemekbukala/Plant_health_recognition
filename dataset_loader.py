@@ -2,7 +2,7 @@ import kagglehub
 import os
 
 def get_dataset(path="~/.cache/plant_dataset"):
-    """Pobiera i rozpakowuje dataset, zwracając ścieżkę do katalogu z danymi."""
+    """Downloads and unzips the dataset if not already present, otherwise returns the existing path."""
     cache_dir = os.path.expanduser(path)
     if os.path.exists(cache_dir):
         return cache_dir
@@ -12,7 +12,7 @@ def get_dataset(path="~/.cache/plant_dataset"):
     )
 
 def get_directories(path):
-    """Zwraca ścieżki do katalogów train, valid i test."""
+    """Returns the paths to the train, valid, and test directories."""
     train_dir = os.path.join(path, "New Plant Diseases Dataset(Augmented)", "New Plant Diseases Dataset(Augmented)", "train")
     valid_dir = os.path.join(path, "New Plant Diseases Dataset(Augmented)", "New Plant Diseases Dataset(Augmented)", "valid")
     test_dir = os.path.join(path, "test", "test")
@@ -20,7 +20,7 @@ def get_directories(path):
 
 if __name__ == "__main__":
     dataset_path = get_dataset("~/.cache/plant_dataset")
-    print("Dataset rozpakowany pod:", dataset_path)
+    print("Dataset unzipped to:", dataset_path)
 
     train_dir, valid_dir, test_dir = get_directories(dataset_path)
     print("Train dir:", train_dir)
