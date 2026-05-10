@@ -38,27 +38,35 @@ ollama run llama3
 # 1. Install Ollama 
 winget install Ollama.Ollama --accept-source-agreements --accept-package-agreements
 
-# 2. Start Ollama server 
+# 2. Add variable to PATH
+$ollamaPath = "$env:LOCALAPPDATA\Programs\Ollama"
+[Environment]::SetEnvironmentVariable(
+ "Path",
+ [Environment]::GetEnvironmentVariable("Path", "User") + ";" + $ollamaPath,
+"User"
+)
+
+# 3. Start Ollama server 
 Start-Process ollama -ArgumentList "serve" -WindowStyle Hidden
 
-# 3. Download model ==
+# 4. Download model ==
 ollama pull llama3
 
-# 4. Install uv (Python package manager)
+# 5. Install uv (Python package manager)
 irm https://astral.sh/uv/install.ps1 | iex
 
-# 5. Refresh PATH 
+# 6. Refresh PATH 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
             [System.Environment]::GetEnvironmentVariable("Path","User")
 
 
-# 6. Install dependencies
+# 7. Install dependencies
 uv sync
 
-# 7. Run LLM setup script 
+# 8. Run LLM setup script 
 uv run python scripts/setup_llm.py
 
-# 8. Verify model works 
+# 9. Verify model works 
 ollama run llama3
 ```
 @TODO checked if it works on powershell (Windows)
