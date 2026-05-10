@@ -69,4 +69,3 @@ uv run python scripts/setup_llm.py
 # 9. Verify model works 
 ollama run llama3
 ```
-@TODO checked if it works on powershell (Windows)
