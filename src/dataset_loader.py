@@ -1,14 +1,14 @@
 import kagglehub
 import os
 
-def get_dataset(path="~/.cache/plant_dataset"):
+def get_dataset(path="~/.cache/plant_dataset"):#bug - checks .cache/plant_datasets but the dataset is in .cache/kagglehub/datasets...
     """Downloads and unzips the dataset if not already present, otherwise returns the existing path."""
-    cache_dir = os.path.expanduser(path)
-    if os.path.exists(cache_dir):
-        return cache_dir
+    #cache_dir = os.path.expanduser(path)
+    #if os.path.exists(cache_dir):
+    #    return cache_dir
     return kagglehub.dataset_download(
         "vipoooool/new-plant-diseases-dataset",
-        unzip=True
+        #unzip=True
     )
 
 def get_directories(path):
