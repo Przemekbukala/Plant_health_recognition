@@ -1,6 +1,25 @@
 ﻿# Plant_health_recognition
 Przemysław Bukała, Krzysztof Kowalik, Jakub Ledwoń
 
+## Running the App
+
+```bash
+ollama serve &
+uv run streamlit run src/app.py
+```
+Open http://localhost:8501 in your browser.
+
+### Test Wikipedia 
+Uses hardcoded English Wikipedia article titles in `src/diseases.py` 
+```bash
+uv run python scripts/test_wikipedia_all.py
+```
+
+### Test  (Wikipedia + Ollama)
+```bash
+ollama serve &
+uv run python scripts/test_pipeline.py
+```
 ##  Quick Start (Linux / WSL)
 
 This project is managed by **`uv`** 
@@ -35,10 +54,10 @@ ollama run llama3
 ### Setup (PowerShell)
 
 ```powershell
-# 1. Install Ollama 
+# Install Ollama 
 winget install Ollama.Ollama --accept-source-agreements --accept-package-agreements
 
-# 2. Add variable to PATH
+# Add variable to PATH
 $ollamaPath = "$env:LOCALAPPDATA\Programs\Ollama"
 [Environment]::SetEnvironmentVariable(
  "Path",
@@ -46,26 +65,26 @@ $ollamaPath = "$env:LOCALAPPDATA\Programs\Ollama"
 "User"
 )
 
-# 3. Start Ollama server 
+# Start Ollama server 
 Start-Process ollama -ArgumentList "serve" -WindowStyle Hidden
 
-# 4. Download model ==
+# Download model ==
 ollama pull llama3
 
-# 5. Install uv (Python package manager)
+# Install uv (Python package manager)
 irm https://astral.sh/uv/install.ps1 | iex
 
-# 6. Refresh PATH 
+# Refresh PATH 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
             [System.Environment]::GetEnvironmentVariable("Path","User")
 
 
-# 7. Install dependencies
+# Install dependencies
 uv sync
 
-# 8. Run LLM setup script 
+# Run LLM setup script 
 uv run python scripts/setup_llm.py
 
-# 9. Verify model works 
+# Verify model works 
 ollama run llama3
 ```
