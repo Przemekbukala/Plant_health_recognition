@@ -3,12 +3,9 @@ import os
 
 def get_dataset(path="~/.cache/plant_dataset"):
     """Downloads and unzips the dataset if not already present, otherwise returns the existing path."""
-    cache_dir = os.path.expanduser(path)
-    if os.path.exists(cache_dir):
-        return cache_dir
+
     return kagglehub.dataset_download(
-        "vipoooool/new-plant-diseases-dataset",
-        unzip=True
+        "vipoooool/new-plant-diseases-dataset"
     )
 
 def get_directories(path):

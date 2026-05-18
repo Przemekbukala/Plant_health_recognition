@@ -88,3 +88,10 @@ uv run python scripts/setup_llm.py
 # Verify model works 
 ollama run llama3
 ```
+
+### Example training run
+
+```
+uv run python src/cnn_trainer.py --epochs 15
+```
+
