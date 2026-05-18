@@ -7,16 +7,13 @@ a training pipeline for classifying plant diseases from images using PyTorch.
 
 import argparse
 import os
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
-
 from dataset_loader import get_dataset, get_directories
 
 
@@ -42,9 +39,7 @@ class PlantDiseaseCNN(nn.Module):
         self.conv4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
 
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
         self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
-
         self.dropout = nn.Dropout(0.5)
 
         self.fc1 = nn.Linear(in_features=256, out_features=128)
@@ -66,13 +61,11 @@ class PlantDiseaseCNN(nn.Module):
         x = self.pool(F.relu(self.conv4(x)))
 
         x = self.global_pool(x)
-
         x = torch.flatten(x, 1)
 
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = self.fc2(x)
-        
         return x
 
 
@@ -90,14 +83,11 @@ def train_model(target_epochs):
                              the last saved epoch up to the target_epochs.
     """
 
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
 
-
     dataset_path = get_dataset("~/.cache/plant_dataset")
     train_dir, valid_dir, test_dir = get_directories(dataset_path)
-
 
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -109,7 +99,6 @@ def train_model(target_epochs):
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
-
 
     batch_size = 64
     train_dataset = datasets.ImageFolder(root=train_dir, transform=train_transform)
@@ -129,8 +118,6 @@ def train_model(target_epochs):
         pin_memory=True
     )
 
-
-
     num_classes = len(train_dataset.classes)
     print(f"Number of classes: {num_classes}")
 
@@ -140,16 +127,12 @@ def train_model(target_epochs):
 
     checkpoint_path = "plant_disease_checkpoint.pth"
     start_epoch = 0
-
     best_path = "plant_disease_best.pth"
     best_accuracy = 0
     
-
-
     if os.path.exists(checkpoint_path):
         print(f"Found existing checkpoint at '{checkpoint_path}'. Loading...")
         checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
-        
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
@@ -161,8 +144,6 @@ def train_model(target_epochs):
         best = torch.load(best_path, map_location=device, weights_only=True)
         best_accuracy = best['accuracy']
 
-
-
     for epoch in range(start_epoch, target_epochs):
         print(f"\nEpoch {epoch + 1}/{target_epochs}")
         model.train()
@@ -171,24 +152,18 @@ def train_model(target_epochs):
 
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
-
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
             running_loss += loss.item()
             batch_count += 1
-            
             if batch_count % 10 == 0:
                 print(f"  Batch {batch_count} | Loss: {loss.item():.4f}")
 
         avg_loss = running_loss / batch_count
         print(f"-> Epoch {epoch + 1} completed. Average Loss: {avg_loss:.4f}")
-
-
-
 
         model.eval() 
         valid_loss = 0.0
@@ -198,21 +173,16 @@ def train_model(target_epochs):
         with torch.no_grad():
             for images, labels in valid_loader:
                 images, labels = images.to(device), labels.to(device)
-                
                 outputs = model(images)
                 loss = criterion(outputs, labels)
                 valid_loss += loss.item()
-
                 _, predicted_classes = torch.max(outputs.data, 1)
-                
                 total_images += labels.size(0)
                 correct_predictions += (predicted_classes == labels).sum().item()
 
         avg_valid_loss = valid_loss / len(valid_loader)
         accuracy = 100 * correct_predictions / total_images
-
         print(f"-> Epoch {epoch + 1} Validation Loss: {avg_valid_loss:.4f} | Accuracy: {accuracy:.2f}%\n")
-
 
         if (epoch + 1) % 5 == 0:
             print(f"Saving checkpoint for Epoch {epoch + 1}...")
@@ -223,7 +193,6 @@ def train_model(target_epochs):
                 'loss': avg_loss,
             }, checkpoint_path)
 
-
         if accuracy > best_accuracy:
             print(f"Saving new best: {accuracy}...")
             best_accuracy = accuracy
@@ -232,14 +201,7 @@ def train_model(target_epochs):
                 'model_state_dict': model.state_dict()
                 }, best_path)
 
-
     print("\nTraining Complete!")
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -253,5 +215,3 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     train_model(target_epochs=args.epochs)
-
-#example call: uv run python src/cnn_trainer.py --epochs 10
