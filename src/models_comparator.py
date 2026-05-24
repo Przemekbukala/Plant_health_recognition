@@ -7,7 +7,6 @@ import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 from dataset_loader import get_dataset, get_directories
 
-# Twoje modele
 from cnn_trainer_pretrained import get_cnn_model
 from cnn_trainer import PlantDiseaseCNN
 
@@ -34,9 +33,8 @@ def compare_models():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Testowanie na {device}...")
 
-    # Pobierz ścieżki (potrzebujemy train tylko po to, żeby znać łączną liczbę klas i ich oryginalne mapowanie)
     dataset_path = get_dataset("~/.cache/plant_dataset")
-    train_dir, _, test_dir = get_directories(dataset_path)
+    train_dir, _, _ = get_directories(dataset_path)
     test_dir = "~/.cache/kagglehub/datasets/vipoooool/new-plant-diseases-dataset/versions/2/test_fixed"
 
     test_transform = transforms.Compose([
@@ -44,19 +42,17 @@ def compare_models():
         transforms.ToTensor()
     ])
 
-    # Szybkie załadowanie tylko po to, by modele wiedziały ile jest klas
+
     train_dataset = datasets.ImageFolder(root=train_dir)
     total_classes = len(train_dataset.classes)
     
     idx_to_class_train = {v: k for k, v in train_dataset.class_to_idx.items()}
 
-    # Ładujemy faktyczny test set
     test_dataset = datasets.ImageFolder(root=test_dir, transform=test_transform)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
     print(f"Liczba obrazków testowych: {len(test_dataset)}")
     
-    # Ładujemy oba modele
     model_custom = get_cnn_model_custom(total_classes, device)
     model_pretrained = get_cnn_model_pretrained(total_classes, device)
     
@@ -71,17 +67,14 @@ def compare_models():
         for images, labels in test_loader:
             images = images.to(device)
             
-            # Jakie to są faktycznie choroby według folderu z folderu 'test'
             true_disease_names = [test_dataset.classes[label] for label in labels]
             
-            # Co mówią modele (zwracają ID z czasów treningu)
             out_custom = model_custom(images)
             out_pretrained = model_pretrained(images)
             
             _, pred_idx_custom = torch.max(out_custom, 1)
             _, pred_idx_pretrained = torch.max(out_pretrained, 1)
 
-            # Przetłumacz odpowiedzi modeli (ID z treningu) na nazwy chorób
             for i in range(len(images)):
                 model_guess_custom = idx_to_class_train[pred_idx_custom[i].item()]
                 model_guess_pretrained = idx_to_class_train[pred_idx_pretrained[i].item()]
