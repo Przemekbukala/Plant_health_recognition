@@ -47,7 +47,7 @@ with col_input:
     st.subheader("Upload image")
     uploaded_file = st.file_uploader(
         "Choose a plant leaf photo",
-        type=["jpg", "jpeg", "png"],
+        type=["jpg"],
     )
 
     if uploaded_file is not None:
