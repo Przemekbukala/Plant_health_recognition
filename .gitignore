@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .venv/
+plant_disease_checkpoint_pretrained.pth
+plant_disease_checkpoint.pth
