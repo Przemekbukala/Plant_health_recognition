@@ -97,13 +97,7 @@ uv run python src/cnn_trainer.py --epochs 15
 
 ### Testing ready models
 
-For models_comparator.py to work, dataset needs to be fixed first
-
-```
-chmod a+x scripts/dataset_fix.sh
-```
-
-Then comparison on test examples can be executed
+Run comparison on test examples can be executed
 
 ```
 uv run python src/models_comparator.py
