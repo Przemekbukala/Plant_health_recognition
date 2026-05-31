@@ -6,6 +6,8 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 from dataset_loader import get_dataset, get_directories
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 from cnn_trainer_pretrained import get_cnn_model
 from cnn_trainer import PlantDiseaseCNN
@@ -34,8 +36,9 @@ def compare_models():
     print(f"Testowanie na {device}...")
 
     dataset_path = get_dataset("~/.cache/plant_dataset")
-    train_dir, _, _ = get_directories(dataset_path)
-    test_dir = "~/.cache/kagglehub/datasets/vipoooool/new-plant-diseases-dataset/versions/2/test_fixed"
+    train_dir, valid_dir, _ = get_directories(dataset_path)
+    #test_dir = "~/.cache/kagglehub/datasets/vipoooool/new-plant-diseases-dataset/versions/2/test_fixed"
+    test_dir = valid_dir
 
     test_transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -64,6 +67,9 @@ def compare_models():
     total = 0
 
     with torch.no_grad():
+        y_pred_custom = []
+        y_pred_pretrained = []
+        y_true = []
         for images, labels in test_loader:
             images = images.to(device)
             
@@ -87,12 +93,34 @@ def compare_models():
                 
                 total += 1
 
+            y_pred_custom.extend(pred_idx_custom.cpu().tolist())
+            y_pred_pretrained.extend(pred_idx_pretrained.cpu().tolist())
+            y_true.extend(labels.cpu().tolist())
+            
+
     acc_custom = 100 * correct_custom / total
     acc_pretrained = 100 * correct_pretrained / total
 
     print(f"\n--- WYNIKI ---")
     print(f"CUSTOM:      {acc_custom:.2f}% poprawnych ({correct_custom}/{total})")
     print(f"PRETRAINED:  {acc_pretrained:.2f}% poprawnych ({correct_pretrained}/{total})")
+
+    conf_matrix_custom = confusion_matrix(y_true, y_pred_custom)
+    conf_matrix_pretrained = confusion_matrix(y_true, y_pred_pretrained)
+
+    print("\n\n\n--- MACIERZE POMYŁEK --\n")
+    print("CUSTOM:")
+    print(conf_matrix_custom)
+    print("\n\nPRETRAINED:")
+    print(conf_matrix_pretrained)
+
+    with open("./docs/conf_matrix.txt", "w") as f:
+        f.write("CUSTOM:")
+        f.write(np.array2string(conf_matrix_custom, threshold=np.inf))
+        f.write("\n\nPRETRAINED:")
+        f.write(np.array2string(conf_matrix_pretrained, threshold=np.inf))
+
+
 
 
 if __name__ == "__main__":
