@@ -72,6 +72,22 @@ def stream_ollama(
             yield token
 
 
+def stream_ollama_chat(
+    messages: list[dict[str, str]],
+    model: str = "llama3",
+) -> Generator[str, None, None]:
+    """Streams a reply given an arbitrary conversation history."""
+    stream = ollama.chat(
+        model=model,
+        messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+        stream=True,
+    )
+    for chunk in stream:
+        token = chunk.message.content
+        if token:
+            yield token
+
+
 def list_available_models() -> list[str]:
     try:
         models = ollama.list()

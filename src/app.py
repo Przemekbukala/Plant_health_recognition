@@ -8,7 +8,7 @@ from PIL import Image
 
 from diseases import DISEASE_CLASSES, parse_disease_label
 from wiki_fetcher import fetch_wikipedia_context
-from llm_assistant import stream_ollama, list_available_models
+from llm_assistant import stream_ollama, stream_ollama_chat, list_available_models
 from image_classifier import classify_image
 
 st.set_page_config(
@@ -63,10 +63,18 @@ with col_input:
         st.info("Upload a plant leaf image to get started.")
         analyze_btn = False
 
+if "chat_messages" not in st.session_state:
+    st.session_state.chat_messages = []
+if "analysis_done" not in st.session_state:
+    st.session_state.analysis_done = False
+
 with col_output:
     st.subheader("Diagnosis")
 
     if analyze_btn and uploaded_file is not None:
+        st.session_state.chat_messages = []
+        st.session_state.analysis_done = False
+
         with st.spinner("Running CNN classification..."):
             result = classify_image(image, model_type=model_type)
 
@@ -115,10 +123,10 @@ with col_output:
                     st.markdown(f"[Full article]({wiki_data['url']})")
 
             st.markdown(f"**Model:** `{selected_model}`")
-            response_placeholder = st.empty()
-            full_response = ""
 
+            full_response = ""
             try:
+                response_placeholder = st.empty()
                 for token in stream_ollama(
                     plant=plant,
                     disease=disease,
@@ -133,7 +141,22 @@ with col_output:
                     f"**Cannot reach Ollama.** Start the server:\n\n"
                     f"```bash\nollama serve\n```\n\nError: `{exc}`"
                 )
-    elif not analyze_btn:
+                full_response = ""
+
+            if full_response:
+                from llm_assistant import build_prompt
+
+                initial_user_prompt = build_prompt(
+                    plant, disease, is_healthy, wiki_excerpt
+                )
+                st.session_state.chat_messages = [
+                    {"role": "user", "content": initial_user_prompt},
+                    {"role": "assistant", "content": full_response},
+                ]
+                st.session_state.analysis_done = True
+                st.session_state.selected_model = selected_model
+
+    elif not analyze_btn and not st.session_state.analysis_done:
         st.info("Upload an image on the left and click **Analyze**.")
 
 with st.expander("All dataset classes"):
@@ -149,3 +172,36 @@ with st.expander("All dataset classes"):
             for d in diseases:
                 suffix = " *(healthy)*" if d == "Healthy" else ""
                 st.markdown(f"- {d}{suffix}")
+
+if st.session_state.analysis_done:
+    st.markdown("---")
+    st.subheader("Chat")
+
+    for msg in st.session_state.chat_messages[1:]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if user_input := st.chat_input("Ask a follow-up question..."):
+        st.session_state.chat_messages.append(
+            {"role": "user", "content": user_input}
+        )
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant"):
+            reply_placeholder = st.empty()
+            reply = ""
+            try:
+                for token in stream_ollama_chat(
+                    messages=st.session_state.chat_messages,
+                    model=st.session_state.selected_model,
+                ):
+                    reply += token
+                    reply_placeholder.markdown(reply)
+            except Exception as exc:
+                reply = f"Error contacting Ollama: {exc}"
+                reply_placeholder.error(reply)
+
+            st.session_state.chat_messages.append(
+                {"role": "assistant", "content": reply}
+            )
