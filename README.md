@@ -1,8 +1,8 @@
 ﻿# Plant_health_recognition
 Przemysław Bukała, Krzysztof Kowalik, Jakub Ledwoń
-
+## Project report
+https://www.overleaf.com/read/qssqcssgtmmp#b0c7cb
 ## Running the App
-
 ```bash
 ollama serve &
 uv run streamlit run src/app.py
